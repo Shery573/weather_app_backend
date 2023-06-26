@@ -78,5 +78,52 @@ router.get('/all', async (req, res) => {
     res.json(users);
 });
 
+router.get('/user/:id', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+router.put('/user/:id', async (req, res) => {
+    try {
+        let user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        const { email, password } = req.body;
+
+        if (password) {
+            user.password = await bcrypt.hash(password, 10);
+        }
+
+        if (email) {
+            user.email = email;
+        }
+
+        await user.save();
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+router.delete('/user/:id', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        await User.deleteOne({ _id: req.params.id });
+        res.json({ msg: 'User removed' });
+    } catch (err) {
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
 
 module.exports = router;
